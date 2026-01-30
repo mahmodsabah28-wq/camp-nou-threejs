@@ -1,73 +1,76 @@
-// ===== استيراد Three.js من CDN (مهم جداً) =====
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-// ===== المشهد =====
+// ================= SCENE =================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // سماء زرقاء
+scene.background = new THREE.Color(0x87ceeb);
 
-// ===== الكاميرا (منظر سينمائي) =====
+// ================= CAMERA =================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
   5000
 );
-camera.position.set(220, 55, 0);
+
+camera.position.set(0, 600, 1000);
 camera.lookAt(0, 0, 0);
 
-// ===== الـ Renderer =====
+// ================= RENDERER =================
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-// ===== إضاءة واقعية =====
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+// ================= LIGHT =================
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
-const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
-sunLight.position.set(300, 400, 200);
-scene.add(sunLight);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(500, 800, 300);
+scene.add(sun);
 
-// ===== أرضية مؤقتة (للتأكد أن المشهد يعمل) =====
+// ================= GROUND =================
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(2000, 2000),
-  new THREE.MeshStandardMaterial({ color: 0x1e7f3b })
+  new THREE.PlaneGeometry(5000, 5000),
+  new THREE.MeshStandardMaterial({ color: 0x4caf50 })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// ===== تحميل ملعب كامب نو =====
+// ================= LOAD STADIUM =================
 const loader = new GLTFLoader();
+
 loader.load(
   './models/camp_nou.gltf',
   (gltf) => {
     const stadium = gltf.scene;
-    stadium.scale.set(10, 10, 10);
+    stadium.scale.set(15, 15, 15);
     stadium.position.set(0, 0, 0);
     scene.add(stadium);
-    console.log('✅ Camp Nou Loaded');
   },
   undefined,
-  (error) => {
-    console.error('❌ Error loading model:', error);
-  }
+  (err) => console.error(err)
 );
 
-// ===== تحريك الكاميرا (بداية سينمائية بسيطة) =====
+// ================= ANIMATION =================
+let t = 0;
+
 function animate() {
   requestAnimationFrame(animate);
 
-  camera.position.x -= 0.15;
-  camera.lookAt(0, 0, 0);
+  t += 0.002;
+  camera.position.x = Math.sin(t) * 800;
+  camera.position.z = Math.cos(t) * 800;
+  camera.position.y = 500;
+
+  camera.lookAt(0, 100, 0);
 
   renderer.render(scene, camera);
 }
 
 animate();
 
-// ===== ضبط الحجم عند تغيير الشاشة =====
+// ================= RESIZE =================
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
