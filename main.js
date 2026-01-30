@@ -1,78 +1,29 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Camp Nou Three.js</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-// ================= SCENE =================
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
 
-// ================= CAMERA =================
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  5000
-);
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
 
-camera.position.set(0, 600, 1000);
-camera.lookAt(0, 0, 0);
+  <!-- IMPORTANT -->
+  <script type="module" src="./main.js"></script>
 
-// ================= RENDERER =================
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.body.appendChild(renderer.domElement);
-
-// ================= LIGHT =================
-scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-
-const sun = new THREE.DirectionalLight(0xffffff, 1);
-sun.position.set(500, 800, 300);
-scene.add(sun);
-
-// ================= GROUND =================
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(5000, 5000),
-  new THREE.MeshStandardMaterial({ color: 0x4caf50 })
-);
-ground.rotation.x = -Math.PI / 2;
-scene.add(ground);
-
-// ================= LOAD STADIUM =================
-const loader = new GLTFLoader();
-
-loader.load(
-  './models/camp_nou.gltf',
-  (gltf) => {
-    const stadium = gltf.scene;
-    stadium.scale.set(15, 15, 15);
-    stadium.position.set(0, 0, 0);
-    scene.add(stadium);
-  },
-  undefined,
-  (err) => console.error(err)
-);
-
-// ================= ANIMATION =================
-let t = 0;
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  t += 0.002;
-  camera.position.x = Math.sin(t) * 800;
-  camera.position.z = Math.cos(t) * 800;
-  camera.position.y = 500;
-
-  camera.lookAt(0, 100, 0);
-
-  renderer.render(scene, camera);
-}
-
-animate();
-
-// ================= RESIZE =================
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+</body>
+</html>
