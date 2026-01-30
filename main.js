@@ -1,12 +1,12 @@
-// ================== IMPORTS ==================
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+// ===================== IMPORTS =====================
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-// ================== SCENE ==================
+// ===================== SCENE =====================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+scene.background = new THREE.Color(0x87ceeb); // sky blue
 
-// ================== CAMERA ==================
+// ===================== CAMERA =====================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
@@ -14,45 +14,42 @@ const camera = new THREE.PerspectiveCamera(
   10000
 );
 
-// زاوية سينمائية جانبية
+// لقطة سينمائية من الأعلى
 camera.position.set(220, 55, 0);
 camera.lookAt(0, 0, 0);
 
-// ================== RENDERER ==================
+// ===================== RENDERER =====================
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// ================== LIGHTING ==================
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+// ===================== LIGHTING =====================
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
 const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-sun.position.set(800, 1200, 500);
+sun.position.set(500, 800, 300);
 sun.castShadow = true;
-sun.shadow.mapSize.width = 2048;
-sun.shadow.mapSize.height = 2048;
+sun.shadow.mapSize.set(2048, 2048);
 scene.add(sun);
 
-// ================== GROUND ==================
+// ===================== GROUND =====================
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(8000, 8000),
-  new THREE.MeshStandardMaterial({ color: 0x0c5f30 })
+  new THREE.PlaneGeometry(5000, 5000),
+  new THREE.MeshStandardMaterial({ color: 0x1e7f3b }) // عشب
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ================== LOAD STADIUM ==================
+// ===================== LOAD STADIUM =====================
 const loader = new GLTFLoader();
-let stadium = null;
 
 loader.load(
-  "models/camp_nou.gltf", // ⚠️ بدون /
+  'models/camp_nou.gltf',
   (gltf) => {
-    stadium = gltf.scene;
+    const stadium = gltf.scene;
 
     stadium.scale.set(15, 15, 15);
     stadium.position.set(0, 0, 0);
@@ -65,35 +62,33 @@ loader.load(
     });
 
     scene.add(stadium);
-
-    const loading = document.getElementById("loading");
-    if (loading) loading.style.display = "none";
   },
   undefined,
   (error) => {
-    console.error("GLTF error:", error);
+    console.error('GLTF Error:', error);
   }
 );
 
-// ================== RESIZE ==================
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+// ===================== ANIMATION (CINEMATIC MOVE) =====================
+let angle = 0;
 
-// ================== ANIMATION LOOP ==================
 function animate() {
   requestAnimationFrame(animate);
 
-  // دوران سينمائي خفيف حول الملعب
-  if (stadium) {
-    camera.position.x = Math.cos(Date.now() * 0.00015) * 220;
-    camera.position.z = Math.sin(Date.now() * 0.00015) * 220;
-    camera.lookAt(0, 20, 0);
-  }
+  // دوران سينمائي حول الملعب
+  angle += 0.0008;
+  camera.position.x = Math.cos(angle) * 220;
+  camera.position.z = Math.sin(angle) * 220;
+  camera.lookAt(0, 20, 0);
 
   renderer.render(scene, camera);
 }
 
 animate();
+
+// ===================== RESIZE =====================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
