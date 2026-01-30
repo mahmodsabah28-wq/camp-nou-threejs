@@ -1,31 +1,49 @@
-import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
-import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
+console.log("JS WORKING");
 
+// ========================
+// Scene
+// ========================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-// كاميرا
+// ========================
+// Camera (موبايل)
+// ========================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000
+  2000
 );
-camera.position.set(0, 60, 120);
 
-// ريندر
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+camera.position.set(0, 30, 60);
+
+// ========================
+// Renderer (خفيف)
+// ========================
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: false,   // مهم للموبايل
+  powerPreference: "low-power"
+});
+
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-// إضاءة (بدونها الشاشة سوداء)
-scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+// ========================
+// Lights (خفيفة)
+// ========================
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(50, 100, 50);
 scene.add(dirLight);
 
-// أرضية مؤقتة (للتأكد أن المشهد يعمل)
+// ========================
+// Ground (اختبار)
+// ========================
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(500, 500),
   new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
@@ -33,30 +51,45 @@ const ground = new THREE.Mesh(
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// تحميل الملعب
-const loader = new GLTFLoader();
+// ========================
+// Load Model
+// ========================
+const loader = new THREE.GLTFLoader();
+
 loader.load(
   "./models/camp_nou.gltf",
   (gltf) => {
-    gltf.scene.scale.set(10, 10, 10);
-    scene.add(gltf.scene);
+    const model = gltf.scene;
+
+    model.scale.set(1, 1, 1); // مهم للموبايل
+    model.position.set(0, 0, 0);
+
+    scene.add(model);
+    console.log("Model Loaded ✅");
   },
-  undefined,
+  (xhr) => {
+    console.log("Loading:", (xhr.loaded / xhr.total) * 100 + "%");
+  },
   (error) => {
-    console.error("GLTF ERROR:", error);
+    console.error("Model Error ❌", error);
   }
 );
 
-// ريندر مستمر
-function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
-}
-animate();
-
-// ضبط الحجم
+// ========================
+// Resize
+// ========================
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// ========================
+// Animate
+// ========================
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
+animate();
