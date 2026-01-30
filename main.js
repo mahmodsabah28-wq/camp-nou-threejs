@@ -1,63 +1,67 @@
-// ===== Scene =====
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // سماء
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-// ===== Camera =====
+// ================= SCENE =================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+
+// ================= CAMERA =================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000
+  5000
 );
-camera.position.set(0, 30, 80);
+camera.position.set(0, 300, 600);
 
-// ===== Renderer =====
-const canvas = document.getElementById("scene");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+// ================= RENDERER =================
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
 
-// ===== Lights =====
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-scene.add(ambientLight);
+// ================= LIGHT =================
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(50, 100, 50);
-scene.add(dirLight);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(500, 800, 300);
+scene.add(sun);
 
-// ===== Ground =====
-const groundGeo = new THREE.PlaneGeometry(500, 500);
-const groundMat = new THREE.MeshStandardMaterial({ color: 0x2e8b57 });
-const ground = new THREE.Mesh(groundGeo, groundMat);
+// ================= GROUND =================
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(5000, 5000),
+  new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
+);
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// ===== Load Model =====
-const loader = new THREE.GLTFLoader();
+// ================= LOAD MODEL =================
+const loader = new GLTFLoader();
+
 loader.load(
-  "models/camp_nou.gltf",
+  "./models/camp_nou.gltf",
   (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(10, 10, 10);
-    model.position.set(0, 0, 0);
-    scene.add(model);
+    const stadium = gltf.scene;
+    stadium.scale.set(15, 15, 15);
+    stadium.position.set(0, 0, 0);
+    scene.add(stadium);
   },
   undefined,
   (error) => {
-    console.error("Model load error:", error);
+    console.error("GLTF ERROR:", error);
   }
 );
 
-// ===== Resize =====
+// ================= RESIZE =================
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ===== Animate =====
+// ================= LOOP =================
 function animate() {
   requestAnimationFrame(animate);
+  camera.lookAt(0, 50, 0);
   renderer.render(scene, camera);
 }
 animate();
