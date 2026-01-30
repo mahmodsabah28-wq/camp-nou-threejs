@@ -1,5 +1,5 @@
-import * as THREE from './libs/three.module.js';
-import { GLTFLoader } from './libs/GLTFLoader.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
 // ================= SCENE =================
 const scene = new THREE.Scene();
@@ -12,27 +12,20 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   5000
 );
-
-// بداية سينمائية
-camera.position.set(0, 600, 1200);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 300, 600);
 
 // ================= RENDERER =================
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// ================= LIGHTS =================
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+// ================= LIGHT =================
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-sunLight.position.set(500, 800, 300);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.set(2048, 2048);
-scene.add(sunLight);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(500, 800, 300);
+scene.add(sun);
 
 // ================= GROUND =================
 const ground = new THREE.Mesh(
@@ -40,50 +33,32 @@ const ground = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
 );
 ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
 scene.add(ground);
 
-// ================= LOAD STADIUM =================
+// ================= LOAD MODEL =================
 const loader = new GLTFLoader();
 
 loader.load(
   './models/camp_nou.gltf',
   (gltf) => {
     const stadium = gltf.scene;
-
     stadium.scale.set(15, 15, 15);
     stadium.position.set(0, 0, 0);
-
-    stadium.traverse((obj) => {
-      if (obj.isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-      }
-    });
-
     scene.add(stadium);
-    console.log('Stadium loaded successfully');
   },
   undefined,
   (error) => {
-    console.error('Error loading model:', error);
+    console.error('GLTF ERROR:', error);
   }
 );
 
-// ================= CINEMATIC CAMERA =================
-let t = 0;
-
-function cinematicCamera() {
-  t += 0.002;
-
-  camera.position.x = Math.sin(t) * 800;
-  camera.position.z = Math.cos(t) * 800;
-  camera.position.y = 500 - t * 120;
-
-  if (camera.position.y < 200) camera.position.y = 200;
-
-  camera.lookAt(0, 80, 0);
+// ================= ANIMATE =================
+function animate() {
+  requestAnimationFrame(animate);
+  camera.lookAt(0, 50, 0);
+  renderer.render(scene, camera);
 }
+animate();
 
 // ================= RESIZE =================
 window.addEventListener('resize', () => {
@@ -91,12 +66,3 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-// ================= ANIMATE =================
-function animate() {
-  requestAnimationFrame(animate);
-  cinematicCamera();
-  renderer.render(scene, camera);
-}
-
-animate();
