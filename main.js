@@ -1,3 +1,4 @@
+alert("JS WORKS");
 <!DOCTYPE html>
 <html lang="en">
 <head>
