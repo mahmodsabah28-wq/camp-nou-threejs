@@ -1,11 +1,11 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from './libs/three.module.js';
+import { GLTFLoader } from './libs/GLTFLoader.js';
 
-/* ================= SCENE ================= */
+// ================= SCENE =================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-/* ================= CAMERA ================= */
+// ================= CAMERA =================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
@@ -14,94 +14,88 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 // بداية سينمائية
-camera.position.set(0, 800, 1200);
+camera.position.set(0, 600, 1200);
 camera.lookAt(0, 0, 0);
 
-/* ================= RENDERER ================= */
+// ================= RENDERER =================
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-/* ================= LIGHT ================= */
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+// ================= LIGHTS =================
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
 
-const sun = new THREE.DirectionalLight(0xffffff, 1);
-sun.position.set(500, 800, 300);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-scene.add(sun);
+const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+sunLight.position.set(500, 800, 300);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+scene.add(sunLight);
 
-/* ================= GROUND ================= */
+// ================= GROUND =================
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(5000, 5000),
-  new THREE.MeshStandardMaterial({
-    color: 0x1e7f3b, // أخضر ملعب
-    roughness: 0.9
-  })
+  new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-/* ================= TEST CUBE (للتأكد) ================= */
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(50, 50, 50),
-  new THREE.MeshStandardMaterial({ color: 0x4f83ff })
-);
-cube.position.y = 25;
-cube.castShadow = true;
-scene.add(cube);
-
-/* ================= LOAD STADIUM (اختياري) ================= */
+// ================= LOAD STADIUM =================
 const loader = new GLTFLoader();
-/*
+
 loader.load(
   './models/camp_nou.gltf',
   (gltf) => {
     const stadium = gltf.scene;
+
     stadium.scale.set(15, 15, 15);
     stadium.position.set(0, 0, 0);
-    stadium.traverse(obj => {
-      if (obj.isMesh) obj.castShadow = true;
+
+    stadium.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
     });
+
     scene.add(stadium);
+    console.log('Stadium loaded successfully');
   },
   undefined,
-  (e) => console.error(e)
+  (error) => {
+    console.error('Error loading model:', error);
+  }
 );
-*/
 
-/* ================= CINEMATIC CAMERA ================= */
+// ================= CINEMATIC CAMERA =================
 let t = 0;
 
 function cinematicCamera() {
   t += 0.002;
 
-  camera.position.x = Math.sin(t) * 600;
-  camera.position.z = Math.cos(t) * 600;
-  camera.position.y = 400 - t * 120;
+  camera.position.x = Math.sin(t) * 800;
+  camera.position.z = Math.cos(t) * 800;
+  camera.position.y = 500 - t * 120;
 
-  if (camera.position.y < 120) camera.position.y = 120;
+  if (camera.position.y < 200) camera.position.y = 200;
 
-  camera.lookAt(0, 50, 0);
+  camera.lookAt(0, 80, 0);
 }
 
-/* ================= RESIZE ================= */
+// ================= RESIZE =================
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-/* ================= LOOP ================= */
+// ================= ANIMATE =================
 function animate() {
   requestAnimationFrame(animate);
-
-  cube.rotation.y += 0.01; // حركة بسيطة
   cinematicCamera();
-
   renderer.render(scene, camera);
 }
 
