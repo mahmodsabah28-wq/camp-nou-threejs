@@ -1,84 +1,98 @@
-// ================= IMPORTS =================
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+// ================== IMPORTS ==================
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-// ================= SCENE =================
+// ================== SCENE ==================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-// ================= CAMERA =================
+// ================== CAMERA ==================
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  5000
+  10000
 );
 
-// بداية سينمائية (من الأعلى)
-camera.position.set(0, 800, 1200);
+// زاوية سينمائية جانبية
+camera.position.set(220, 55, 0);
 camera.lookAt(0, 0, 0);
 
-// ================= RENDERER =================
+// ================== RENDERER ==================
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// ================= LIGHTING =================
+// ================== LIGHTING ==================
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-sunLight.position.set(500, 800, 300);
-scene.add(sunLight);
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(800, 1200, 500);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+scene.add(sun);
 
-// ================= GROUND =================
+// ================== GROUND ==================
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(5000, 5000),
-  new THREE.MeshStandardMaterial({ color: 0x2e7d32 }) // أخضر (عشب مبدئي)
+  new THREE.PlaneGeometry(8000, 8000),
+  new THREE.MeshStandardMaterial({ color: 0x0c5f30 })
 );
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = 0;
+ground.receiveShadow = true;
 scene.add(ground);
 
-// ================= LOADING TEXT =================
-const loadingEl = document.getElementById("loading");
-if (loadingEl) {
-  loadingEl.style.display = "none";
-}
+// ================== LOAD STADIUM ==================
+const loader = new GLTFLoader();
+let stadium = null;
 
-// ================= CINEMATIC CAMERA =================
-let progress = 0;
+loader.load(
+  "models/camp_nou.gltf", // ⚠️ بدون /
+  (gltf) => {
+    stadium = gltf.scene;
 
-function cinematicCamera() {
-  progress += 0.002;
+    stadium.scale.set(15, 15, 15);
+    stadium.position.set(0, 0, 0);
 
-  if (progress < 1) {
-    // دوران سينمائي خارجي
-    camera.position.x = Math.sin(progress * Math.PI * 2) * 900;
-    camera.position.z = Math.cos(progress * Math.PI * 2) * 900;
-    camera.position.y = 900 - progress * 500;
-    camera.lookAt(0, 0, 0);
-  } else {
-    // اقتراب من داخل الملعب (وهمي حالياً)
-    camera.position.lerp(
-      new THREE.Vector3(220, 55, 0),
-      0.02
-    );
-    camera.lookAt(0, 0, 0);
+    stadium.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
+    });
+
+    scene.add(stadium);
+
+    const loading = document.getElementById("loading");
+    if (loading) loading.style.display = "none";
+  },
+  undefined,
+  (error) => {
+    console.error("GLTF error:", error);
   }
-}
+);
 
-// ================= RESIZE =================
+// ================== RESIZE ==================
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ================= LOOP =================
+// ================== ANIMATION LOOP ==================
 function animate() {
   requestAnimationFrame(animate);
-  cinematicCamera();
+
+  // دوران سينمائي خفيف حول الملعب
+  if (stadium) {
+    camera.position.x = Math.cos(Date.now() * 0.00015) * 220;
+    camera.position.z = Math.sin(Date.now() * 0.00015) * 220;
+    camera.lookAt(0, 20, 0);
+  }
+
   renderer.render(scene, camera);
 }
 
