@@ -1,67 +1,61 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
 
-// ================= SCENE =================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-// ================= CAMERA =================
+// كاميرا
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  5000
+  1000
 );
-camera.position.set(0, 300, 600);
+camera.position.set(0, 60, 120);
 
-// ================= RENDERER =================
+// ريندر
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-// ================= LIGHT =================
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+// إضاءة (بدونها الشاشة سوداء)
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
-const sun = new THREE.DirectionalLight(0xffffff, 1);
-sun.position.set(500, 800, 300);
-scene.add(sun);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(50, 100, 50);
+scene.add(dirLight);
 
-// ================= GROUND =================
+// أرضية مؤقتة (للتأكد أن المشهد يعمل)
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(5000, 5000),
+  new THREE.PlaneGeometry(500, 500),
   new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// ================= LOAD MODEL =================
+// تحميل الملعب
 const loader = new GLTFLoader();
-
 loader.load(
-  './models/camp_nou.gltf',
+  "./models/camp_nou.gltf",
   (gltf) => {
-    const stadium = gltf.scene;
-    stadium.scale.set(15, 15, 15);
-    stadium.position.set(0, 0, 0);
-    scene.add(stadium);
+    gltf.scene.scale.set(10, 10, 10);
+    scene.add(gltf.scene);
   },
   undefined,
   (error) => {
-    console.error('GLTF ERROR:', error);
+    console.error("GLTF ERROR:", error);
   }
 );
 
-// ================= ANIMATE =================
+// ريندر مستمر
 function animate() {
   requestAnimationFrame(animate);
-  camera.lookAt(0, 50, 0);
   renderer.render(scene, camera);
 }
 animate();
 
-// ================= RESIZE =================
-window.addEventListener('resize', () => {
+// ضبط الحجم
+window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
