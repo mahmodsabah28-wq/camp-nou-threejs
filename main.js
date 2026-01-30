@@ -1,5 +1,9 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const canvas = document.getElementById("scene");
+
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x00ff00);
+scene.background = new THREE.Color(0x222222);
 
 const camera = new THREE.PerspectiveCamera(
   60,
@@ -7,14 +11,17 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 5;
+camera.position.set(0, 2, 5);
 
-const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector("canvas") });
+const renderer = new THREE.WebGLRenderer({
+  canvas: canvas,
+  antialias: true
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const cube = new THREE.Mesh(
   new THREE.BoxGeometry(),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  new THREE.MeshNormalMaterial()
 );
 scene.add(cube);
 
@@ -24,3 +31,9 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
