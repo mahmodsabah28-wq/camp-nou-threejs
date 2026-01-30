@@ -1,94 +1,63 @@
-// ===================== IMPORTS =====================
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-
-// ===================== SCENE =====================
+// ===== Scene =====
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // sky blue
+scene.background = new THREE.Color(0x87ceeb); // سماء
 
-// ===================== CAMERA =====================
+// ===== Camera =====
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  10000
+  1000
 );
+camera.position.set(0, 30, 80);
 
-// لقطة سينمائية من الأعلى
-camera.position.set(220, 55, 0);
-camera.lookAt(0, 0, 0);
-
-// ===================== RENDERER =====================
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+// ===== Renderer =====
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
 
-// ===================== LIGHTING =====================
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+// ===== Lights =====
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+scene.add(ambientLight);
 
-const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-sun.position.set(500, 800, 300);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-scene.add(sun);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(50, 100, 50);
+scene.add(dirLight);
 
-// ===================== GROUND =====================
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(5000, 5000),
-  new THREE.MeshStandardMaterial({ color: 0x1e7f3b }) // عشب
-);
+// ===== Ground =====
+const groundGeo = new THREE.PlaneGeometry(500, 500);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x2e8b57 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
 scene.add(ground);
 
-// ===================== LOAD STADIUM =====================
-const loader = new GLTFLoader();
-
+// ===== Load Model =====
+const loader = new THREE.GLTFLoader();
 loader.load(
-  'models/camp_nou.gltf',
+  "models/camp_nou.gltf",
   (gltf) => {
-    const stadium = gltf.scene;
-
-    stadium.scale.set(15, 15, 15);
-    stadium.position.set(0, 0, 0);
-
-    stadium.traverse((obj) => {
-      if (obj.isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-      }
-    });
-
-    scene.add(stadium);
+    const model = gltf.scene;
+    model.scale.set(10, 10, 10);
+    model.position.set(0, 0, 0);
+    scene.add(model);
   },
   undefined,
   (error) => {
-    console.error('GLTF Error:', error);
+    console.error("Model load error:", error);
   }
 );
 
-// ===================== ANIMATION (CINEMATIC MOVE) =====================
-let angle = 0;
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  // دوران سينمائي حول الملعب
-  angle += 0.0008;
-  camera.position.x = Math.cos(angle) * 220;
-  camera.position.z = Math.sin(angle) * 220;
-  camera.lookAt(0, 20, 0);
-
-  renderer.render(scene, camera);
-}
-
-animate();
-
-// ===================== RESIZE =====================
-window.addEventListener('resize', () => {
+// ===== Resize =====
+window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// ===== Animate =====
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
