@@ -1,63 +1,72 @@
-import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-const canvas = document.getElementById('scene');
+let scene, camera, renderer, controls;
 
-// renderer
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: true
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+init();
+animate();
 
-// scene
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+function init() {
+  // Scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
 
-// camera
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.set(0, 20, 40);
+  // Camera
+  camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    5000
+  );
+  camera.position.set(0, 120, 220);
 
-// light
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-scene.add(ambientLight);
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(20, 50, 20);
-scene.add(dirLight);
+  // Controls
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 40, 0);
+  controls.update();
 
-// loader
-const loader = new GLTFLoader();
-loader.load(
-  './models/camp_nou.gltf',
-  (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(1, 1, 1);
-    model.position.set(0, 0, 0);
-    scene.add(model);
-  },
-  undefined,
-  (error) => {
-    console.error('GLTF ERROR:', error);
-  }
-);
+  // Light
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(300, 400, 200);
+  sun.castShadow = true;
+  scene.add(sun);
 
-// resize
-window.addEventListener('resize', () => {
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambient);
+
+  // Stadium Loader
+  const loader = new GLTFLoader();
+  loader.load(
+    "models/camp_nou.gltf",
+    (gltf) => {
+      const stadium = gltf.scene;
+      stadium.scale.set(1, 1, 1);
+      stadium.position.set(0, 0, 0);
+      scene.add(stadium);
+    },
+    undefined,
+    (error) => {
+      console.error("Model loading error:", error);
+    }
+  );
+
+  window.addEventListener("resize", onWindowResize);
+}
+
+function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
+}
 
-// animate
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 }
-animate();
